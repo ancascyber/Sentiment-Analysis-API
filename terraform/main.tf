@@ -82,6 +82,7 @@ resource "azurerm_api_management_api" "sentiment_api" {
   path                = "sentiment"
   protocols           = ["https"]
   service_url         = "https://${azurerm_linux_function_app.func.default_hostname}/api"
+  subscription_required = false
 }
 
 resource "azurerm_api_management_api_policy" "policy" {
@@ -124,6 +125,32 @@ resource "azurerm_consumption_budget_resource_group" "budget" {
     operator       = "GreaterThan"
     threshold_type = "Forecasted"
     contact_emails = ["ancascyber@gmail.com"]
+  }
+}
+
+resource "azurerm_api_management_api_operation" "analyze" {
+  operation_id        = "analyze-sentiment"
+  api_name            = azurerm_api_management_api.sentiment_api.name
+  api_management_name = azurerm_api_management.apim.name
+  resource_group_name = azurerm_resource_group.rg.name
+  display_name        = "Analyze Sentiment"
+  method              = "POST"
+  url_template        = "/sentiment"
+  description         = "Accepts text input and returns sentiment result"
+
+  request {
+    description = "Text to analyze"
+    representation {
+      content_type = "application/json"
+    }
+  }
+
+  response {
+    status_code = 200
+    description = "Sentiment result"
+    representation {
+      content_type = "application/json"
+    }
   }
 }
 
